@@ -4,13 +4,87 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Clothing List</title>
+  <script>
+    async function createClothingItem(event) {
+      event.preventDefault();
+      const formData = new FormData(event.target);
+      const data = Object.fromEntries(formData);
+      
+      const response = await fetch('/clothes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        location.reload(); // Refresh the page to see the new item
+      } else {
+        console.error('Failed to create clothing item');
+      }
+    }
+
+    async function updateClothingItem(event, id) {
+      event.preventDefault();
+      const formData = new FormData(event.target);
+      const data = Object.fromEntries(formData);
+
+      const response = await fetch(`/clothes/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        location.reload(); // Refresh the page to see the updated item
+      } else {
+        console.error('Failed to update clothing item');
+      }
+    }
+
+    async function deleteClothingItem(id) {
+      const response = await fetch(`/clothes/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        location.reload(); // Refresh the page to remove the deleted item
+      } else {
+        console.error('Failed to delete clothing item');
+      }
+    }
+  </script>
 </head>
 <body>
   <h1>Clothing Items</h1>
+  
+  <h2>Add New Clothing Item</h2>
+  <form onsubmit="createClothingItem(event)">
+    <input name="name" placeholder="Name" required />
+    <input name="size" placeholder="Size" required />
+    <input name="brand" placeholder="Brand" required />
+    <input name="price" placeholder="Price" type="number" required />
+    <input name="color" placeholder="Color" required />
+    <button type="submit">Add Clothing Item</button>
+  </form>
+
+  <h2>Existing Clothing Items</h2>
   <ul>
     <% clothes.forEach(item => { %>
       <li>
         <%= item.name %> - Size: <%= item.size %> - Brand: <%= item.brand %> - Price: $<%= item.price %> - Color: <%= item.color %>
+        <form style="display:inline;" onsubmit="updateClothingItem(event, '<%= item._id %>')">
+          <input name="name" placeholder="New Name" />
+          <input name="size" placeholder="New Size" />
+          <input name="brand" placeholder="New Brand" />
+          <input name="price" placeholder="New Price" type="number" />
+          <input name="color" placeholder="New Color" />
+          <button type="submit">Update</button>
+        </form>
+        <button onclick="deleteClothingItem('<%= item._id %>')">Delete</button>
       </li>
     <% }); %>
   </ul>
