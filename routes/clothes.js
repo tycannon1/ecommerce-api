@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { MongoClient, ObjectId } = require('mongodb');
+const { clothingItemSchema } = require('../validation/validation'); // Adjust the path if needed
+const { ValidationError } = require('yup'); // Assuming you're using Yup for validation
 require('dotenv').config();
 
 // MongoDB setup
@@ -99,17 +101,21 @@ router.get('/:id', async (req, res) => {
  *     responses:
  *       201:
  *         description: Created
+ *       400:
+ *         description: Validation error
  *       500:
  *         description: Failed to create clothing item
  */
+
+// POST a new clothing item
 router.post('/', async (req, res) => {
   try {
-    const { name, size, brand, price, color } = req.body;
-    const db = await connectToDB();
-    const result = await db.collection('clothes').insertOne({ name, size, brand, price, color });
-    res.status(201).json(result);
+      const { name, size, brand, price, color } = req.body;
+      const db = await connectToDB();
+      const result = await db.collection('clothes').insertOne({ name, size, brand, price, color });
+      res.status(201).json(result);
   } catch (err) {
-    res.status(500).json({ message: 'Failed to create clothing item' });
+      res.status(500).json({ message: 'Failed to create clothing item' });
   }
 });
 
@@ -143,11 +149,15 @@ router.post('/', async (req, res) => {
  *     responses:
  *       200:
  *         description: Success
+ *       400:
+ *         description: Validation error
  *       404:
  *         description: Clothing item not found
  *       500:
  *         description: Failed to update clothing item
  */
+
+// PUT (update) a clothing item
 router.put('/:id', async (req, res) => {
   try {
     const { name, size, brand, price, color } = req.body;
@@ -156,8 +166,12 @@ router.put('/:id', async (req, res) => {
       { _id: new ObjectId(req.params.id) },
       { $set: { name, size, brand, price, color } }
     );
-    if (result.matchedCount === 0) return res.status(404).json({ message: 'Clothing item not found' });
-    res.json(result);
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: 'Clothing item not found' });
+    }
+
+    res.json({ message: 'Clothing item updated successfully', result });
   } catch (err) {
     res.status(500).json({ message: 'Failed to update clothing item' });
   }
